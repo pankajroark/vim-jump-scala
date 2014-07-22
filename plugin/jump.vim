@@ -29,8 +29,7 @@ f = parts[0]
 r = parts[1]
 c = parts[2]
 
-vim.command("edit %s" % (f))
-vim.command("normal %sG%s|" % (r, c))
+vim.command("edit +normal\\ %sG%s| %s" % (r, c, f))
 
 EOF
 
