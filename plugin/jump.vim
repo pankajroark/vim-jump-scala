@@ -23,13 +23,17 @@ URL_STR = "http://localhost:8081/jump?file=%s&symbol=%s&row=%s&col=%s"
 
 URL = URL_STR % (cur_file, cur_word, row, col)
 
+print URL
+
 response = urllib2.urlopen(URL, None, 1000).read()
+print response
 parts = response.split(':')
 f = parts[0]
 r = parts[1]
 c = parts[2]
 
-vim.command("edit +normal\\ %sG%s| %s" % (r, c, f))
+vim.command("edit %s" % (f))
+vim.command("call cursor(%s,%s)" % (r, c))
 
 EOF
 
@@ -39,4 +43,4 @@ EOF
 endfunc
 
 
-command! BetterScalaJump2 :call s:BetterJump()
+command! ScalaJump :call s:BetterJump()
