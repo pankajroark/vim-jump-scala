@@ -70,8 +70,8 @@ elif len(results) > 1:
     matches.append(match_str)
   vim.command('call setqflist([' + ', '.join(matches) + '])')
   vim.command('copen %d' % (len(matches) + 1))
-  key_binding = "execute \"nnoremap <buffer> <silent> <CR> <CR>\""
-  vim.command(key_binding)
+  vim.command("execute \"nnoremap <buffer> <silent> <CR> <CR>:cclose<CR>\"")
+  vim.command("execute \"nnoremap <buffer> <silent> q :cclose<CR>\"")
   
 else:
   print 'no matches found'
