@@ -5,7 +5,10 @@ import vim, urllib2
 cur_file = vim.current.buffer.name
 URL_STR = "http://localhost:8081/dirty?file=%s"
 URL = URL_STR % (cur_file)
-response = urllib2.urlopen(URL, None, 1000).read()
+try:
+  response = urllib2.urlopen(URL, None, 1000).read()
+except:
+  print "failed to inform server about dirty file"
 #print response
 #print URL
 EOF
@@ -47,13 +50,31 @@ print URL
 
 response = urllib2.urlopen(URL, None, 1000).read()
 print response
-parts = response.split(':')
-f = parts[0]
-r = parts[1]
-c = parts[2]
-
-vim.command("edit %s" % (f))
-vim.command("call cursor(%s,%s)" % (r, c))
+results = response.split(',')
+if len(results) == 1:
+  parts = response.split(':')
+  f = parts[0]
+  r = parts[1]
+  c = parts[2]
+  vim.command("edit %s" % (f))
+  vim.command("call cursor(%s,%s)" % (r, c))
+elif len(results) > 1:
+  matches = []
+  for match in results:
+    parts = match.split(':')
+    f = parts[0]
+    r = parts[1]
+    c = parts[2]
+    match_str = "{ 'filename' : '%s', 'lnum' : '%s', 'col' : '%s' }" % (f, r, c)
+    print match_str
+    matches.append(match_str)
+  vim.command('call setqflist([' + ', '.join(matches) + '])')
+  vim.command('copen %d' % (len(matches) + 1))
+  key_binding = "execute \"nnoremap <buffer> <silent> <CR> <CR>\""
+  vim.command(key_binding)
+  
+else:
+  print 'no matches found'
 
 EOF
 
