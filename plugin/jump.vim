@@ -7,7 +7,7 @@ URL_STR = "http://localhost:8081/dirty?file=%s"
 URL = URL_STR % (cur_file)
 try:
   response = urllib2.urlopen(URL, None, 1000).read()
-except:
+except Exception:
   print "failed to inform server about dirty file"
 #print response
 #print URL
@@ -45,36 +45,50 @@ col = pos[1] + 1
 URL_STR = "http://localhost:8081/jump?file=%s&symbol=%s&row=%s&col=%s"
 
 URL = URL_STR % (cur_file, cur_word, row, col)
-
 print URL
 
-response = urllib2.urlopen(URL, None, 1000).read()
-print response
-results = response.split(',')
-if len(results) == 1:
-  parts = response.split(':')
-  f = parts[0]
-  r = parts[1]
-  c = parts[2]
-  vim.command("edit %s" % (f))
-  vim.command("call cursor(%s,%s)" % (r, c))
-elif len(results) > 1:
-  matches = []
-  for match in results:
-    parts = match.split(':')
-    f = parts[0]
-    r = parts[1]
-    c = parts[2]
-    match_str = "{ 'filename' : '%s', 'lnum' : '%s', 'col' : '%s' }" % (f, r, c)
-    print match_str
-    matches.append(match_str)
-  vim.command('call setqflist([' + ', '.join(matches) + '])')
-  vim.command('copen %d' % (len(matches) + 1))
-  vim.command("execute \"nnoremap <buffer> <silent> <CR> <CR>:cclose<CR>\"")
-  vim.command("execute \"nnoremap <buffer> <silent> q :cclose<CR>\"")
-  
-else:
-  print 'no matches found'
+def read_nth_line_from_file(filename, line_number): 
+  print("line number : %s" % line_number)
+  fp = open(filename)
+  l = ""
+  for i, line in enumerate(fp):
+    if i == line_number:
+      l = line
+  fp.close()
+  return l
+
+def gen_qf_entry(file, line, row, col):
+  cur_cwd = os.getcwd()
+  filepath = os.path.relpath(file, cur_cwd)
+  pat = "{ 'filename' : '%s', 'text' : '%s', 'lnum' : '%s', 'col' : '%s' }"
+  return pat % (filepath, line, row, col)
+
+try:
+  response = urllib2.urlopen(URL, None, 1000).read()
+  print response
+  results = response.split(',')
+  if len(results) == 1:
+    f, r, c = response.split(':')
+    vim.command("edit %s" % (f))
+    vim.command("call cursor(%s,%s)" % (r, c))
+  elif len(results) > 1:
+    matches = []
+    for match in results:
+      f, r, c = match.split(':')
+      line = read_nth_line_from_file(f, int(r))
+      match_str =  gen_qf_entry(f, line, r, c)
+      print match_str
+      matches.append(match_str)
+    vim.command('call setqflist([' + ', '.join(matches) + '])')
+    vim.command('copen %d' % (len(matches) + 2))
+    vim.command("execute \"nnoremap <buffer> <silent> <CR> <CR>:cclose<CR>\"")
+    vim.command("execute \"nnoremap <buffer> <silent> q :cclose<CR>\"")
+    
+  else:
+    print 'no matches found'
+except Exception as inst:
+  print inst
+  print "couldn't connect to scajump, make sure the server is running"
 
 EOF
 
