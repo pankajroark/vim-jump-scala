@@ -48,7 +48,6 @@ URL = URL_STR % (cur_file, cur_word, row, col)
 print URL
 
 def read_nth_line_from_file(filename, line_number): 
-  print("line number : %s" % line_number)
   fp = open(filename)
   l = ""
   for i, line in enumerate(fp):
@@ -65,7 +64,7 @@ def gen_qf_entry(file, line, row, col):
 
 try:
   response = urllib2.urlopen(URL, None, 1000).read()
-  print response
+  #print response
   results = response.split(',')
   if len(results) == 1:
     f, r, c = response.split(':')
