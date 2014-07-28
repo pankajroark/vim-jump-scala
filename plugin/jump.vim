@@ -31,7 +31,7 @@ function! s:BetterJump()
 
 python << EOF
 
-import vim, urllib2
+import vim, os, urllib2
 
 cur_word = vim.eval("expand('<cword>')")
 cb = vim.current.buffer
@@ -52,7 +52,7 @@ def read_nth_line_from_file(filename, line_number):
   fp = open(filename)
   l = ""
   for i, line in enumerate(fp):
-    if i == line_number:
+    if i == line_number - 1:
       l = line
   fp.close()
   return l
@@ -77,7 +77,6 @@ try:
       f, r, c = match.split(':')
       line = read_nth_line_from_file(f, int(r))
       match_str =  gen_qf_entry(f, line, r, c)
-      print match_str
       matches.append(match_str)
     vim.command('call setqflist([' + ', '.join(matches) + '])')
     vim.command('copen %d' % (len(matches) + 2))
