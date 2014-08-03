@@ -20,7 +20,7 @@ autocmd!
 autocmd BufWritePost *.java,*.scala call s:MarkDirty()
 augroup end
 
-function! s:BetterJump()
+function! s:RunCmd(cmd)
   let orig_shortmess = &shm
   let &shm=orig_shortmess.'s'
   let orig_cmdheight = &cmdheight
@@ -42,9 +42,9 @@ row = pos[0]
 # column has to be one based
 col = pos[1] + 1
 
-URL_STR = "http://localhost:8081/jump?file=%s&symbol=%s&row=%s&col=%s"
+URL_STR = "http://localhost:8081/%s?file=%s&symbol=%s&row=%s&col=%s"
 
-URL = URL_STR % (cur_file, cur_word, row, col)
+URL = URL_STR % (vim.eval("a:cmd"), cur_file, cur_word, row, col)
 print URL
 
 def read_nth_line_from_file(filename, line_number): 
@@ -95,4 +95,7 @@ EOF
   let &scrolloff = orig_scrolloff
 endfunc
 
+function! s:BetterJump()
+  call s:RunCmd("jump")
+endfunc
 command! ScalaJump :call s:BetterJump()
