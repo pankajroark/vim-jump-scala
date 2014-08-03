@@ -1,6 +1,12 @@
+let s:debug = 0
+
 function! s:MarkDirty()
 
 python << EOF
+def log(msg):
+  if int(vim.eval("s:debug")) == 1:
+    print msg
+
 import vim, urllib2
 cur_file = vim.current.buffer.name
 URL_STR = "http://localhost:8081/dirty?file=%s"
@@ -8,9 +14,9 @@ URL = URL_STR % (cur_file)
 try:
   response = urllib2.urlopen(URL, None, 1000).read()
 except Exception:
-  print "failed to inform server about dirty file"
-#print response
-#print URL
+  log("failed to inform server about dirty file")
+#log(response)
+#log(URL)
 EOF
 
 endfunction
@@ -34,18 +40,14 @@ python << EOF
 import vim, os, urllib2
 
 cur_word = vim.eval("expand('<cword>')")
-cb = vim.current.buffer
-cw = vim.current.window
-pos = cw.cursor
-cur_file = cb.name
+pos = vim.current.window.cursor
+cur_file = vim.current.buffer.name
 row = pos[0]
-# column has to be one based
-col = pos[1] + 1
+col = pos[1] + 1 # column has to be one based
 
 URL_STR = "http://localhost:8081/%s?file=%s&symbol=%s&row=%s&col=%s"
-
 URL = URL_STR % (vim.eval("a:cmd"), cur_file, cur_word, row, col)
-print URL
+log(URL)
 
 def read_nth_line_from_file(filename, line_number): 
   fp = open(filename)
@@ -64,7 +66,7 @@ def gen_qf_entry(file, line, row, col):
 
 try:
   response = urllib2.urlopen(URL, None, 1000).read()
-  #print response
+  #log(response)
   results = response.split(',')
   if len(results) == 1:
     f, r, c = response.split(':')
@@ -83,10 +85,10 @@ try:
     vim.command("execute \"nnoremap <buffer> <silent> q :cclose<CR>\"")
     
   else:
-    print 'no matches found'
+    log('no matches found')
 except Exception as inst:
-  print inst
-  print "couldn't connect to scajump, make sure the server is running"
+  log(inst)
+  log("couldn't connect to scajump, make sure the server is running")
 
 EOF
 
@@ -95,7 +97,13 @@ EOF
   let &scrolloff = orig_scrolloff
 endfunc
 
-function! s:BetterJump()
+function! s:Jump()
   call s:RunCmd("jump")
 endfunc
-command! ScalaJump :call s:BetterJump()
+
+function! s:Find()
+  call s:RunCmd("find")
+endfunc
+
+command! ScalaJump :call s:Jump()
+command! ScalaProjFind :call s:Find()
