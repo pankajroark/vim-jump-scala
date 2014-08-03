@@ -7,12 +7,15 @@ def log(msg):
   if int(vim.eval("s:debug")) == 1:
     print msg
 
+# This actually sets the read timeout
+socket.setdefaulttimeout(5)
+
 import vim, urllib2
 cur_file = vim.current.buffer.name
 URL_STR = "http://localhost:8081/dirty?file=%s"
 URL = URL_STR % (cur_file)
 try:
-  response = urllib2.urlopen(URL, None, 1000).read()
+  response = urllib2.urlopen(URL, None, 1).read()
 except Exception:
   log("failed to inform server about dirty file")
 #log(response)
@@ -65,7 +68,7 @@ def gen_qf_entry(file, line, row, col):
   return pat % (filepath, line, row, col)
 
 try:
-  response = urllib2.urlopen(URL, None, 1000).read()
+  response = urllib2.urlopen(URL, None, 1).read()
   #log(response)
   results = response.split(',')
   if len(results) == 1:
